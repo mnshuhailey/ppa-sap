@@ -1,0 +1,52 @@
+# dagster.yaml
+instance_class: dagster.core.instance.DagsterInstance
+
+local_artifact_storage:
+  module: dagster.core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: ./storage/artifacts  # Local directory for storing artifacts
+
+compute_logs:
+  module: dagster.core.storage.compute_log_manager
+  class: LocalComputeLogManager
+  config:
+    base_dir: ./storage/compute_logs  # Local directory for storing compute logs
+
+run_storage:
+  module: dagster.core.storage.runs
+  class: SqliteRunStorage
+  config:
+    base_dir: ./storage/runs.db  # SQLite database file for run storage
+
+event_log_storage:
+  module: dagster.core.storage.event_log
+  class: SqliteEventLogStorage
+  config:
+    base_dir: ./storage/event_logs.db  # SQLite database file for event log storage
+
+scheduler:
+  module: dagster.core.scheduler
+  class: DagsterDaemonScheduler
+  config:
+    max_concurrent_runs: 10  # Max concurrent scheduled runs
+    interval_seconds: 60  # Daemon check interval for schedules
+
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: DefaultRunCoordinator
+
+# Additional configuration for sensors
+sensors:
+  module: dagster.core.sensor
+  class: DagsterDaemonSensor
+
+logging:
+  python:
+    level: INFO  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+
+# Enable automatic loading of repositories
+repositories:
+  - name: "sap_integration_repo"
+    location_name: "sap_integration"
+    load_from: "repository.py"
