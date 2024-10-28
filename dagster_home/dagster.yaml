@@ -24,10 +24,10 @@ compute_logs:
   module: dagster._core.storage.local_compute_log_manager
   class: LocalComputeLogManager
   config:
-    base_dir: /home/shuhailey/dev/ppa-dagster/dagster_home/compute_logs
+    base_dir: /home/shuhailey/lzs-ppa/ppa-sap/dagster_home/compute_logs
 
 local_artifact_storage:
   module: dagster._core.storage.root
   class: LocalArtifactStorage
   config:
-    base_dir: /home/shuhailey/dev/ppa-dagster/dagster_home
+    base_dir: /home/shuhailey/lzs-ppa/ppa-sap/dagster_home
