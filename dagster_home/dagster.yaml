@@ -1,0 +1,33 @@
+run_storage:
+  module: dagster_postgres.run_storage
+  class: PostgresRunStorage
+  config:
+    postgres_db:
+      username: postgres # Live - postgres
+      password: secret123 # Live - secret123
+      hostname: 192.168.10.177 # Live - 192.168.10.177
+      db_name: dagster_sap # Live - dagster_sap
+      port: 5432
+
+event_log_storage:
+  module: dagster_postgres.event_log
+  class: PostgresEventLogStorage
+  config:
+    postgres_db:
+      username: postgres # Live - postgres
+      password: secret123 # Live - secret123
+      hostname: 192.168.10.177 # Live - 192.168.10.177
+      db_name: dagster_sap # Live - dagster_sap
+      port: 5432
+
+compute_logs:
+  module: dagster._core.storage.local_compute_log_manager
+  class: LocalComputeLogManager
+  config:
+    base_dir: /home/shuhailey/dev/ppa-dagster/dagster_home/compute_logs
+
+local_artifact_storage:
+  module: dagster._core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: /home/shuhailey/dev/ppa-dagster/dagster_home

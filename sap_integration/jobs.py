@@ -1,43 +1,40 @@
 from dagster import job, op
-from datetime import datetime
 from sap_integration.resources import sqlserver_db_resource
+from sap_integration.ops.generate_FI07 import generate_FI07
+from sap_integration.ops.generate_FI09 import generate_FI09
+from sap_integration.ops.generate_FI10 import generate_FI10
+from sap_integration.ops.read_update_FI16 import read_update_FI16
 import os
-# import pysftp  # Commented out since SFTP is not configured yet
+from datetime import datetime
+import pysftp
 
-@op(required_resource_keys={"sqlserver_db"})
-def extract_data_from_sqlserver(context):
-    conn = context.resources.sqlserver_db
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM dbo.asnaf_transformed_v4"
-    cursor.execute(query)
-    data = cursor.fetchall()
-
-    if not data:  # Check if data is empty
-        context.log.info("No data found in the SQL Server table. Skipping file generation.")
-        return None
-
-    formatted_lines = []
-
-    # Add the header
-    date_created = "2024090911250000"  # Fixed datetime value in YYYYMMDDHHMMSSSS format
-    header = f"0|FI07|{date_created}|PPA||{len(data)}"
-    formatted_lines.append(header)
-
-    for row in data:
-        line1 = f"1|ZB90||2|{row.Name}|{row.Gender}||{row.IdentificationNumIC}|{row.AsnafID}"
-        line2 = f"2|{row.Street1}|{row.Street2}|{row.Street3}|||{row.City}|{row.Postcode}|{row.State}|{row.Country}|EN|{row.TelephoneNoHome}||{row.MobilePhoneNum}|{row.Emel}"
-        line3 = f"3|0001|MY||{row.BankAccountNum}|"
-        line4 = f"4|MY4|{row.IdentificationNumIC}"
-        line5 = "5|001|5000002|V090||X|CDEFJTV|||X"
-
-        formatted_lines.extend([line1, line2, line3, line4, line5])
-
-    context.log.info(f"Extracted and formatted {len(data)} rows of data.")
-    return formatted_lines
-
+# Op to dynamically generate the filename for FI07
 @op
-def write_to_flatfile_file(context, formatted_lines):
+def get_fi07_filename(context):
+    execution_time = datetime.now()
+    filename = f"FI07_{execution_time.strftime('%Y%m%d%H%M%S00')}.txt"
+    context.log.info(f"Generated filename: {filename}")
+    return filename
+
+# Op to dynamically generate the filename for FI09
+@op
+def get_fi09_filename(context):
+    execution_time = datetime.now()
+    filename = f"FI09_{execution_time.strftime('%Y%m%d%H%M%S00')}.txt"
+    context.log.info(f"Generated filename: {filename}")
+    return filename
+
+# Op to dynamically generate the filename for FI10
+@op
+def get_fi10_filename(context):
+    execution_time = datetime.now()
+    filename = f"FI10_{execution_time.strftime('%Y%m%d%H%M%S00')}.txt"
+    context.log.info(f"Generated filename: {filename}")
+    return filename
+
+# Op to write to flat file
+@op
+def write_to_flatfile_file(context, formatted_lines, filename):
     if formatted_lines is None:
         context.log.info("No data to write. Skipping file generation.")
         return None
@@ -47,35 +44,71 @@ def write_to_flatfile_file(context, formatted_lines):
     # Create the folder if it does not exist
     os.makedirs(folder_path, exist_ok=True)
 
-    # Fixed filename format
-    filename = "FI07_20240909112500.txt"  
     local_path = os.path.join(folder_path, filename)
 
     with open(local_path, "w") as file:
         for line in formatted_lines:
             file.write(line + "\n")
+    
     context.log.info(f"Written data to {local_path}")
     return local_path
 
 # Commented out push_to_sftp function for now
-# @op
-# def push_to_sftp(context, local_path):
-#     sftp_host = "your_sftp_host"
-#     sftp_username = "your_sftp_username"
-#     sftp_password = "your_sftp_password"
-#     remote_path = f"/remote/path/{os.path.basename(local_path)}"
-# 
-#     with pysftp.Connection(sftp_host, username=sftp_username, password=sftp_password) as sftp:
-#         sftp.put(local_path, remote_path)
-#     
-#     context.log.info(f"File {local_path} uploaded to SFTP server at {remote_path}")
+@op
+def push_to_sftp(context, local_path):
+    sftp_host = "eu-central-1.sftpcloud.io"
+    sftp_username = "dd071a2846a14e009465e8bf4bf79155"
+    sftp_password = "t2ARiDvJ94l9kZ5s5KrRI1h05KWACVp1"  # Remove this if using key authentication
+    remote_path = ""
 
+    # If using public key authentication, include `private_key` and `private_key_pass`
+    # with pysftp.Connection(
+    #         sftp_host,
+    #         username=sftp_username,
+    #         password=sftp_password,  # Remove or replace with `private_key` if needed
+    # ) as sftp:
+    #     sftp.put(local_path, remote_path)
+
+    # Establish SFTP connection using only username and password
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+
+    with pysftp.Connection(
+            sftp_host,
+            username=sftp_username,
+            password=sftp_password,
+            cnopts=cnopts
+    ) as sftp:
+        sftp.put(local_path, remote_path)
+
+    context.log.info(f"File {local_path} uploaded to SFTP server at {remote_path}")
+
+# Job for FI07
 @job(resource_defs={"sqlserver_db": sqlserver_db_resource})
-def generate_and_push_flatfile_job():
-    # Extract data from SQL Server
-    formatted_lines = extract_data_from_sqlserver()
-    
-    # Write to flat file only if data exists
-    if formatted_lines is not None:
-        local_path = write_to_flatfile_file(formatted_lines)
-        # push_to_sftp(local_path)  # Commented out the SFTP function call for now
+def generate_FI07_and_push_flatfile_job():
+    filename = get_fi07_filename()
+    formatted_lines = generate_FI07()
+    # write_to_flatfile_file(formatted_lines, filename)
+    local_path = write_to_flatfile_file(formatted_lines, filename)
+    # push_to_sftp(local_path)
+
+# Job for FI09
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+def generate_FI09_and_push_flatfile_job():
+    filename = get_fi09_filename()
+    formatted_lines = generate_FI09()
+    local_path = write_to_flatfile_file(formatted_lines, filename)
+    # push_to_sftp(local_path)
+
+# Job for FI10
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+def generate_FI10_and_push_flatfile_job():
+    filename = get_fi10_filename()
+    formatted_lines = generate_FI10()
+    local_path = write_to_flatfile_file(formatted_lines, filename)
+    # push_to_sftp(local_path)
+
+# Job for FI16
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+def read_FI16_and_update_table_job():
+    read_update_FI16()
