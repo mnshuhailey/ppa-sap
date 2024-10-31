@@ -3,10 +3,10 @@ run_storage:
   class: PostgresRunStorage
   config:
     postgres_db:
-      username: postgres # Live - postgres
+      username: mns # Live - postgres
       password: secret123 # Live - secret123
-      hostname: 192.168.10.177 # Live - 192.168.10.177
-      db_name: dagster_sap # Live - dagster_sap
+      hostname: 43.216.228.233 # Live - 192.168.10.177
+      db_name: dagster_sap_local # Live - dagster_sap
       port: 5432
 
 event_log_storage:
@@ -14,10 +14,10 @@ event_log_storage:
   class: PostgresEventLogStorage
   config:
     postgres_db:
-      username: postgres # Live - postgres
+      username: mns # Live - postgres
       password: secret123 # Live - secret123
-      hostname: 192.168.10.177 # Live - 192.168.10.177
-      db_name: dagster_sap # Live - dagster_sap
+      hostname: 43.216.228.233 # Live - 192.168.10.177
+      db_name: dagster_sap_local # Live - dagster_sap
       port: 5432
 
 compute_logs:

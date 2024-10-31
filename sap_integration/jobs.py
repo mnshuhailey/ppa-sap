@@ -1,12 +1,15 @@
 from dagster import job, op
+# from sap_integration.resources import sqlserver_db_resource, sftp
 from sap_integration.resources import sqlserver_db_resource
 from sap_integration.ops.generate_FI07 import generate_FI07
 from sap_integration.ops.generate_FI09 import generate_FI09
 from sap_integration.ops.generate_FI10 import generate_FI10
 from sap_integration.ops.read_update_FI16 import read_update_FI16
+from sap_integration.ops.read_update_FI21 import read_update_FI21
 import os
 from datetime import datetime
 import pysftp
+import traceback
 
 # Op to dynamically generate the filename for FI07
 @op
@@ -56,32 +59,45 @@ def write_to_flatfile_file(context, formatted_lines, filename):
 # Commented out push_to_sftp function for now
 @op
 def push_to_sftp(context, local_path):
-    sftp_host = "eu-central-1.sftpcloud.io"
-    sftp_username = "dd071a2846a14e009465e8bf4bf79155"
-    sftp_password = "t2ARiDvJ94l9kZ5s5KrRI1h05KWACVp1"  # Remove this if using key authentication
-    remote_path = ""
+    sftp_host = "192.168.10.176"
+    sftp_username = "shuhailey"
+    sftp_password = "Lzs.user831"  # Use environment variables instead for production security
+    remote_path = "/home/shuhailey/sftpfile"
+    remote_directory = os.path.dirname(remote_path)
 
-    # If using public key authentication, include `private_key` and `private_key_pass`
-    # with pysftp.Connection(
-    #         sftp_host,
-    #         username=sftp_username,
-    #         password=sftp_password,  # Remove or replace with `private_key` if needed
-    # ) as sftp:
-    #     sftp.put(local_path, remote_path)
-
-    # Establish SFTP connection using only username and password
+    # Disable host key checking (for testing purposes only)
     cnopts = pysftp.CnOpts()
-    cnopts.hostkeys = None
+    cnopts.hostkeys = None  # This disables host key verification
 
-    with pysftp.Connection(
-            sftp_host,
-            username=sftp_username,
-            password=sftp_password,
-            cnopts=cnopts
-    ) as sftp:
-        sftp.put(local_path, remote_path)
+    try:
+        with pysftp.Connection(
+                sftp_host,
+                username=sftp_username,
+                password=sftp_password,
+                cnopts=cnopts
+        ) as sftp:
+            # Check if the remote directory exists
+            if not sftp.exists(remote_directory):
+                context.log.error(f"Remote directory {remote_directory} does not exist.")
+                return
 
-    context.log.info(f"File {local_path} uploaded to SFTP server at {remote_path}")
+            # Check if the directory is writable by trying to change to it
+            try:
+                sftp.chdir(remote_directory)
+                context.log.info(f"Changed directory to {remote_directory}.")
+            except Exception as perm_error:
+                context.log.error(f"Cannot access remote directory {remote_directory}: {perm_error}")
+                return
+
+            # Attempt to upload the file
+            sftp.put(local_path, remote_path)
+            context.log.info(f"File {local_path} uploaded to SFTP server at {remote_path}")
+
+    except Exception as e:
+        error_message = f"Failed to upload file to SFTP server at {sftp_host}. Exception: {str(e)}"
+        stack_trace = traceback.format_exc()
+        context.log.error(error_message)
+        context.log.error(f"Stack Trace: {stack_trace}")
 
 # Job for FI07
 @job(resource_defs={"sqlserver_db": sqlserver_db_resource})
@@ -109,6 +125,13 @@ def generate_FI10_and_push_flatfile_job():
     # push_to_sftp(local_path)
 
 # Job for FI16
+# @job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
 @job(resource_defs={"sqlserver_db": sqlserver_db_resource})
 def read_FI16_and_update_table_job():
     read_update_FI16()
+
+# Job for FI21
+# @job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+def read_FI21_and_update_table_job():
+    read_update_FI21()
