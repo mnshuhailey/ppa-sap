@@ -1,6 +1,18 @@
 from dagster import resource
 import pyodbc
 import pysftp
+import psycopg2
+
+# PostgreSQL resource configuration
+@resource
+def postgres_db_resource(context):
+    return psycopg2.connect(
+        host="192.168.10.177",
+        port=5432,
+        user="postgres",
+        password="secret123",
+        database="postgres_db",
+    )
 
 @resource
 def sqlserver_db_resource(context):

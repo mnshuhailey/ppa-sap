@@ -1,6 +1,6 @@
 from dagster import job, op
-# from sap_integration.resources import sqlserver_db_resource, sftp
-from sap_integration.resources import sqlserver_db_resource
+# from sap_integration.resources import postgres_db_resource, sqlserver_db_resource, sftp
+from sap_integration.resources import sqlserver_db_resource, postgres_db_resource
 from sap_integration.ops.generate_FI07 import generate_FI07
 from sap_integration.ops.generate_FI09 import generate_FI09
 from sap_integration.ops.generate_FI10 import generate_FI10
@@ -126,12 +126,12 @@ def generate_FI10_and_push_flatfile_job():
 
 # Job for FI16
 # @job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
-@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource})
 def read_FI16_and_update_table_job():
     read_update_FI16()
 
 # Job for FI21
 # @job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
-@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource})
 def read_FI21_and_update_table_job():
     read_update_FI21()
