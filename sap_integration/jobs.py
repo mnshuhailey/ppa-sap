@@ -4,6 +4,7 @@ from sap_integration.resources import sqlserver_db_resource, postgres_db_resourc
 from sap_integration.ops.generate_FI07 import generate_FI07
 from sap_integration.ops.generate_FI09 import generate_FI09
 from sap_integration.ops.generate_FI10 import generate_FI10
+from sap_integration.ops.generate_FI15 import generate_FI15
 from sap_integration.ops.read_update_FI16 import read_update_FI16
 from sap_integration.ops.read_update_FI21 import read_update_FI21
 import os
@@ -35,10 +36,17 @@ def get_fi10_filename(context):
     context.log.info(f"Generated filename: {filename}")
     return filename
 
+@op
+def get_fi15_filename(context):
+    execution_time = datetime.now()
+    filename = f"FI15_{execution_time.strftime('%Y%m%d%H%M%S00')}.txt"
+    context.log.info(f"Generated filename: {filename}")
+    return filename
+
 # Op to write to flat file
 @op
 def write_to_flatfile_file(context, formatted_lines, filename):
-    if formatted_lines is None:
+    if not formatted_lines:
         context.log.info("No data to write. Skipping file generation.")
         return None
 
@@ -121,6 +129,14 @@ def generate_FI09_and_push_flatfile_job():
 def generate_FI10_and_push_flatfile_job():
     filename = get_fi10_filename()
     formatted_lines = generate_FI10()
+    local_path = write_to_flatfile_file(formatted_lines, filename)
+    # push_to_sftp(local_path)
+
+# Job for FI15
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+def generate_FI15_and_push_flatfile_job():
+    filename = get_fi15_filename()
+    formatted_lines = generate_FI15()
     local_path = write_to_flatfile_file(formatted_lines, filename)
     # push_to_sftp(local_path)
 
