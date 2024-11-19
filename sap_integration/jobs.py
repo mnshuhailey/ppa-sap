@@ -7,6 +7,7 @@ from sap_integration.ops.generate_FI10 import generate_FI10
 from sap_integration.ops.generate_FI15 import generate_FI15
 from sap_integration.ops.read_update_FI16 import read_update_FI16
 from sap_integration.ops.read_update_FI21 import read_update_FI21
+from sap_integration.ops.read_update_FI09_FI10_FI15 import read_update_FI09_FI10_FI15
 import os
 from datetime import datetime
 import pysftp
@@ -151,3 +152,9 @@ def read_FI16_and_update_table_job():
 @job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource})
 def read_FI21_and_update_table_job():
     read_update_FI21()
+
+# Job for Outbound
+# @job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource})
+def read_outbound_FI09_FI10_FI15_and_update_table_job():
+    read_update_FI09_FI10_FI15()
