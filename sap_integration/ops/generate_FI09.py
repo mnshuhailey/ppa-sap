@@ -41,6 +41,10 @@ def generate_FI09(context):
             return date_value.strftime("%Y%m%d")
         else:
             return datetime.strptime(str(date_value), "%Y-%m-%d %H:%M:%S").strftime("%Y%m%d")
+    
+    # Helper function to replace None or empty values with blank
+    def clean_value(value):
+        return "" if value is None else str(value)
 
     # Helper function to check if PaymentAdviceName exists in dbo.SAP_Integration_Inbound.data_key
     def payment_advice_exists(payment_advice_name):
@@ -66,14 +70,14 @@ def generate_FI09(context):
     def process_data1(data):
         lines_added = 0
         for row in data:
-            if payment_advice_exists(row.PaymentAdviceName):
-                context.log.info(f"Skipping {row.PaymentAdviceName} as it already exists in SAP_Integration_Inbound.")
+            if payment_advice_exists(clean_value(row.PaymentAdviceName)):
+                context.log.info(f"Skipping {clean_value(row.PaymentAdviceName)} as it already exists in SAP_Integration_Inbound.")
                 continue
 
             date_created = format_date(row.DateCreated)
-            line1 = f"1|AGIH|{date_created}|{date_created}|ZB|MYR|||{row.PaymentAdviceName}|||{row.DistributionitemsName}||1|{row.ad_Paamount}|-{row.ad_Paamount}"
-            line2 = f"2|001|S|{row.vwlzs_glaccount}|||MYR|{row.ad_Paamount}||MYR|{row.ad_Paamount}|||{row.vwlzs_CostCenter}|{row.vwlzs_CostCenter}||||{row.SAP_AsnafCategory}||||{row.ad_PenerimaMOP}||{row.AA_invoice}|{row.remark}|||||{row.ad_sapcommittedreference}|{row.DistributionitemsName}|{row.FundCode}|{row.businessArea}|||||||||||||||"
-            line3 = f"2|002|K|{row.SAPCode}|||MYR|-{row.ad_Paamount}||MYR|-{row.ad_Paamount}||||||||{row.SAP_AsnafCategory}||||{row.ad_PenerimaMOP}||{row.AA_invoice}|{row.remark}|||||{row.ad_sapcommittedreference}|{row.DistributionitemsName}|{row.FundCode}|{row.businessArea}||||||||MY||||MY|||"
+            line1 = f"1|AGIH|{date_created}|{date_created}|ZB|MYR|||{clean_value(row.PaymentAdviceName)}|||{clean_value(row.DistributionitemsName)}||1|{clean_value(row.ad_Paamount)}|-{clean_value(row.ad_Paamount)}"
+            line2 = f"2|001|S|{clean_value(row.vwlzs_glaccount)}|||MYR|{clean_value(row.ad_Paamount)}||MYR|{clean_value(row.ad_Paamount)}|||{clean_value(row.vwlzs_CostCenter)}|{clean_value(row.vwlzs_CostCenter)}||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}|||||||||||||||"
+            line3 = f"2|002|K|{clean_value(row.SAPCode)}|||MYR|-{clean_value(row.ad_Paamount)}||MYR|-{clean_value(row.ad_Paamount)}||||||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}||||||||MY||||MY|||"
             formatted_lines.extend([line1, line2, line3])
             lines_added += 3
 
@@ -86,14 +90,14 @@ def generate_FI09(context):
     def process_data2(data):
         lines_added = 0
         for row in data:
-            if payment_advice_exists(row.PaymentAdviceName):
-                context.log.info(f"Skipping {row.PaymentAdviceName} as it already exists in SAP_Integration_Inbound.")
+            if payment_advice_exists(clean_value(row.PaymentAdviceName)):
+                context.log.info(f"Skipping {clean_value(row.PaymentAdviceName)} as it already exists in SAP_Integration_Inbound.")
                 continue
 
             date_created = format_date(row.DateCreated)
-            line1 = f"1|AGIH|{date_created}|{date_created}|ZB|MYR|||{row.PaymentAdviceName}|||{row.DistributionitemsName}||1|{row.ad_Paamount}|-{row.ad_Paamount}"
-            line2 = f"2|001|S|{row.vwlzs_glaccount}|||MYR|{row.ad_Paamount}||MYR|{row.ad_Paamount}|||{row.vwlzs_CostCenter}|{row.vwlzs_CostCenter}||||{row.SAP_AsnafCategory}||||{row.ad_PenerimaMOP}||{row.AA_invoice}|{row.remark}|||||{row.ad_sapcommittedreference}|{row.DistributionitemsName}|{row.FundCode}|{row.businessArea}|||||||||||||||"
-            line3 = f"2|002|K|{row.SAPCode}|||MYR|-{row.ad_Paamount}||MYR|-{row.ad_Paamount}||||||||{row.SAP_AsnafCategory}||||{row.ad_PenerimaMOP}||{row.AA_invoice}|{row.remark}|||||{row.ad_sapcommittedreference}|{row.DistributionitemsName}|{row.FundCode}|{row.businessArea}|{row.ad_Penerimaname}|||{row.Street1}|{row.City}|{row.Postcode}|{row.Negeri}|MY|{row.Email}|{row.vwlzs_SwiftCode}|{row.BankAccountNo}|MY||{row.IdentificationNumIC}|"
+            line1 = f"1|AGIH|{date_created}|{date_created}|ZB|MYR|||{clean_value(row.PaymentAdviceName)}|||{clean_value(row.DistributionitemsName)}||1|{clean_value(row.ad_Paamount)}|-{clean_value(row.ad_Paamount)}"
+            line2 = f"2|001|S|{clean_value(row.vwlzs_glaccount)}|||MYR|{clean_value(row.ad_Paamount)}||MYR|{clean_value(row.ad_Paamount)}|||{clean_value(row.vwlzs_CostCenter)}|{clean_value(row.vwlzs_CostCenter)}||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}|||||||||||||||"
+            line3 = f"2|002|K|{clean_value(row.SAPCode)}|||MYR|-{clean_value(row.ad_Paamount)}||MYR|-{clean_value(row.ad_Paamount)}||||||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}|{clean_value(row.ad_Penerimaname)}|||{clean_value(row.Street1)}|{clean_value(row.City)}|{clean_value(row.Postcode)}|{clean_value(row.Negeri)}|MY|{clean_value(row.Email)}|{clean_value(row.vwlzs_SwiftCode)}|{clean_value(row.BankAccountNo)}|MY||{clean_value(row.IdentificationNumIC)}|"
             formatted_lines.extend([line1, line2, line3])
             lines_added += 3
 
