@@ -26,15 +26,24 @@ def sqlserver_db_resource(context):
     #     "Trust_Connection=yes;"
     # )
 
-    # Staging 10.10.1.199
     conn_str = (
         "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=10.10.1.199;"
-        "DATABASE=PPA;"
+        "SERVER=10.10.2.174;"
+        "DATABASE=PPA_CORE;"
         "UID=noor.shuhailey;"
         "PWD=Lzs.user831;"
         "Trust_Connection=yes;"
     )
+
+    # Staging 10.10.1.199
+    # conn_str = (
+    #     "DRIVER={ODBC Driver 17 for SQL Server};"
+    #     "SERVER=10.10.1.199;"
+    #     "DATABASE=PPA;"
+    #     "UID=noor.shuhailey;"
+    #     "PWD=Lzs.user831;"
+    #     "Trust_Connection=yes;"
+    # )
 
     # local
     # conn_str = (
@@ -52,13 +61,17 @@ def sqlserver_db_resource(context):
         context.log.error(f"SQL Server connection failed: {ex}")
         raise
 
-# @resource
-# def sftp():
-#     # Adjust to your SFTP credentials and server details
-#     sftp_credentials = {
-#         'host': 'sftp_host',
-#         'username': 'your_username',
-#         'private_key': 'path/to/private_key'
-#     }
-#
-#     return pysftp.Connection(**sftp_credentials)
+@resource
+def sftp():
+    # Adjust to your SFTP credentials and server details
+    sftp_credentials = {
+        'host': '10.10.1.204',
+        'username': 'ppa.sftp',
+        'password': 'P3m1nd4h4nF4ilAg1h4nLZS!#'
+    }
+
+    # Establish the SFTP connection
+    try:
+        return pysftp.Connection(**sftp_credentials)
+    except Exception as e:
+        raise Exception(f"Failed to connect to SFTP server: {e}")
