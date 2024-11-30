@@ -1,13 +1,14 @@
 from dagster import job, op
-# from sap_integration.resources import postgres_db_resource, sqlserver_db_resource, sftp
-from sap_integration.resources import sqlserver_db_resource, postgres_db_resource
+from sap_integration.resources import sqlserver_db_resource, postgres_db_resource, sftp
 from sap_integration.ops.generate_FI07 import generate_FI07
 from sap_integration.ops.generate_FI09 import generate_FI09
 from sap_integration.ops.generate_FI10 import generate_FI10
 from sap_integration.ops.generate_FI15 import generate_FI15
 from sap_integration.ops.read_update_FI16 import read_update_FI16
 from sap_integration.ops.read_update_FI21 import read_update_FI21
-from sap_integration.ops.read_update_FI09_FI10_FI15 import read_update_FI09_FI10_FI15
+from sap_integration.ops.read_update_FI09 import read_update_FI09
+from sap_integration.ops.read_update_FI10 import read_update_FI10
+from sap_integration.ops.read_update_FI15 import read_update_FI15
 import os
 from datetime import datetime
 import pysftp
@@ -155,6 +156,14 @@ def read_FI21_and_update_table_job():
 
 # Job for Outbound
 # @job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
-@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource})
-def read_outbound_FI09_FI10_FI15_and_update_table_job():
-    read_update_FI09_FI10_FI15()
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource, "sftp": sftp})
+def read_outbound_FI09_and_update_table_job():
+    read_update_FI09()
+
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource, "sftp": sftp})
+def read_outbound_FI10_and_update_table_job():
+    read_update_FI10()
+
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource, "sftp": sftp})
+def read_outbound_FI15_and_update_table_job():
+    read_update_FI15()

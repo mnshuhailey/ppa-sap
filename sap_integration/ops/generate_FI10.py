@@ -13,6 +13,7 @@ def generate_FI10(context):
     FROM dbo.GabungPA_SAP 
     WHERE PAType IN ('Direct-Asnaf') 
     AND SAP_Touchpoint = 'FI10'
+    AND CONVERT(DATE, DateCreated) = '2024-11-27';
     """
     cursor.execute(query1)
     data1 = cursor.fetchall()
@@ -23,6 +24,7 @@ def generate_FI10(context):
     FROM dbo.GabungPA_SAP 
     WHERE PAType IN ('Direct-Recipient') 
     AND SAP_Touchpoint = 'FI10'
+    AND CONVERT(DATE, DateCreated) = '2024-11-27';
     """
     cursor.execute(query2)
     data2 = cursor.fetchall()
