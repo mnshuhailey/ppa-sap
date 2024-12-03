@@ -2,87 +2,94 @@ from dagster import op
 import os
 from datetime import datetime
 
+from datetime import datetime
+
 @op(required_resource_keys={"sqlserver_db", "sftp"})
 def read_update_FI09(context):
     # Define the SFTP path
-    sftp_path = "FI09/Status/Read/"
+    REMOTE_FOLDER = "FI09/Status/Read"
 
     # Get the SFTP connection from the resource
     sftp_conn = context.resources.sftp
 
     try:
         # Check if the directory exists on the SFTP server
-        if not sftp_conn.exists(sftp_path):
-            context.log.error(f"SFTP directory not found: {sftp_path}")
+        if not sftp_conn.exists(REMOTE_FOLDER):
+            context.log.error(f"SFTP directory not found: {REMOTE_FOLDER}")
             return
 
-        # Get the current date
-        today = datetime.now().date()
+        # Get the current date in the required format
+        current_date = datetime.now().strftime("%Y%m%d")
+        file_prefix = f"FI09_{current_date}"
 
-        # Iterate through each file in the SFTP directory
-        for filename in sftp_conn.listdir(sftp_path):
-            file_path = os.path.join(sftp_path, filename)
+        # List files in the specified remote folder
+        files = sftp_conn.listdir(REMOTE_FOLDER)
 
-            # Skip if it's not a file
-            if not sftp_conn.isfile(file_path):
-                continue
+        # Filter files matching the required format
+        matching_files = [f for f in files if f.startswith(file_prefix) and f.endswith(".txt")]
 
-            # Get the file's metadata
-            file_stat = sftp_conn.lstat(file_path)
-            file_mod_time = datetime.fromtimestamp(file_stat.st_mtime).date()
+        if not matching_files:
+            context.log.error("No files matching the required format found.")
+            return
 
-            # Check if the file was modified today
-            if file_mod_time != today:
-                continue
+        # Get the latest file based on naming convention
+        latest_file = max(matching_files)
+        context.log.info(f"Latest file found: {latest_file}")
 
-            # Log the file being processed
-            context.log.info(f"Processing today's file: {filename}")
+        # Check if the file has already been processed
+        # sqlserver_conn = context.resources.sqlserver_db
+        # if file_already_processed(context, sqlserver_conn, latest_file):
+        #     context.log.info(f"File data for {latest_file} already updated in SQL Server with status 'Read'.")
+        #     continue
 
-            # Check if the file has already been processed
-            # sqlserver_conn = context.resources.sqlserver_db
-            # if file_already_processed(context, sqlserver_conn, filename):
-            #     context.log.info(f"File data for {filename} already updated in SQL Server with status 'Read'.")
-            #     continue
+        # Read the contents of the latest file
+        file_path = f"{REMOTE_FOLDER}/{latest_file}"
+        with sftp_conn.open(file_path, "r") as file:
+            data_raw = file.read().decode("utf-8")
 
-            # Read the file content from SFTP
-            with sftp_conn.open(file_path, "r") as file:
-                data_raw = file.read()
+        # Log the raw data
+        context.log.info(f"Raw data from the file ({latest_file}):\n{data_raw}")
 
-            # Parse header and data rows
-            lines = data_raw.strip().split('\n')
-            header = lines[0].split('|')
-            data_rows = [line.split('|') for line in lines[1:] if line.strip()]
+        # Parse header and data rows
+        lines = data_raw.strip().split("\n")
+        header = lines[0].split("|")
+        data_rows = [line.split("|") for line in lines[1:] if line.strip()]
 
-            # Log data_rows
-            context.log.info(f"Data rows in file {filename}: {data_rows}")
+        # Log header and data rows
+        context.log.info(f"Header: {header}")
+        context.log.info(f"Data rows: {data_rows}")
 
-            # Check if data_rows exists
-            if not data_rows:
-                context.log.error(f"No data rows found in the file: {filename}")
-                continue
+        # Check if data rows exist
+        if not data_rows:
+            context.log.error(f"No data rows found in the file: {latest_file}")
+            return
 
-            header_info = {
-                "record_type": header[0],
-                "document_type": header[1],
-                "timestamp": header[2]
-            }
+        # Process the header
+        header_info = {
+            "record_type": header[0],
+            "document_type": header[1],
+            "timestamp": header[2],
+        }
 
-            # Insert a log entry for the file
-            # insert_file_log(sqlserver_conn, header_info['record_type'], filename, data_raw)
-            context.log.info(f"Inserted log entry for file: {filename}")
+        # Log header information
+        context.log.info(f"Parsed header info: {header_info}")
 
-            # Process each row in the file
-            # for row in data_rows:
-            #     if len(row) != 3:
-            #         context.log.error(f"Invalid row format: {row}. Skipping.")
-            #         continue
+        # Process each row in the file
+        # for row in data_rows:
+        #     if len(row) != 3:
+        #         context.log.error(f"Invalid row format: {row}. Skipping.")
+        #         continue
 
-            #     # Process each data row
-            #     process_data_row(context, sqlserver_conn, row, header_info['record_type'])
+        #     # Process each data row
+        #     process_data_row(context, sqlserver_conn, row, header_info['record_type'])
 
-            # Commit the updates
-            # sqlserver_conn.commit()
-            # context.log.info(f"Completed processing file: {filename}")
+        # Commit the updates
+        # sqlserver_conn.commit()
+        # context.log.info(f"Completed processing file: {latest_file}")
+
+        # Insert a log entry for the file
+        # insert_file_log(sqlserver_conn, header_info['record_type'], latest_file, data_raw)
+        context.log.info(f"Inserted log entry for file: {latest_file}")
 
     except Exception as e:
         context.log.error(f"Error during SFTP processing: {e}")
