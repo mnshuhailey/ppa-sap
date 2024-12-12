@@ -36,9 +36,9 @@ def read_update_FI09(context):
 
         for file_name in matching_files:
             # Check if the file has already been processed
-            # if file_already_processed(context, sqlserver_conn, file_name):
-            #     context.log.info(f"File data for {file_name} already updated in SQL Server with status 'Read'. Skipping.")
-            #     continue
+            if file_already_processed(context, sqlserver_conn, file_name):
+                context.log.info(f"File data for {file_name} already updated in SQL Server with status 'Read'. Skipping.")
+                continue
 
             # Read the contents of the file
             file_path = f"{REMOTE_FOLDER}/{file_name}"
@@ -73,16 +73,16 @@ def read_update_FI09(context):
             context.log.info(f"Parsed header info: {header_info}")
 
             # Process each row in the file
-            # for row in data_rows:
-            #     if len(row) != 3:
-            #         context.log.error(f"Invalid row format: {row}. Skipping.")
-            #         continue
+            for row in data_rows:
+                if len(row) != 3:
+                    context.log.error(f"Invalid row format: {row}. Skipping.")
+                    continue
 
-            #     # Process each data row
-            #     process_data_row(context, sqlserver_conn, row, header_info['record_type'])
+                # Process each data row
+                process_data_row(context, sqlserver_conn, row, header_info['record_type'])
 
             # Insert a log entry for the file
-            # insert_file_log(sqlserver_conn, header_info['record_type'], file_name, data_raw)
+            insert_file_log(sqlserver_conn, header_info['record_type'], file_name, data_raw)
             context.log.info(f"Inserted log entry for file: {file_name}")
 
         # Commit the updates after processing all files
