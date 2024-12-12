@@ -17,23 +17,23 @@ def postgres_db_resource(context):
 @resource
 def sqlserver_db_resource(context):
     # Live Prod 10.10.2.74
-    # conn_str = (
-    #     "DRIVER={ODBC Driver 17 for SQL Server};"
-    #     "SERVER=10.10.2.74;"
-    #     "DATABASE=PPA_CORE;"
-    #     "UID=noor.shuhailey;"
-    #     "PWD=Lzs.user831;"
-    #     "Trust_Connection=yes;"
-    # )
-
     conn_str = (
         "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=10.10.2.174;"
+        "SERVER=10.10.2.74;"
         "DATABASE=PPA_CORE;"
         "UID=noor.shuhailey;"
         "PWD=Lzs.user831;"
         "Trust_Connection=yes;"
     )
+
+    # conn_str = (
+    #     "DRIVER={ODBC Driver 17 for SQL Server};"
+    #     "SERVER=10.10.2.174;"
+    #     "DATABASE=PPA_CORE;"
+    #     "UID=noor.shuhailey;"
+    #     "PWD=Lzs.user831;"
+    #     "Trust_Connection=yes;"
+    # )
 
     # Staging 10.10.1.199
     # conn_str = (

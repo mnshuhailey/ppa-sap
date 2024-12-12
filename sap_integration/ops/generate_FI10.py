@@ -13,7 +13,7 @@ def generate_FI10(context):
     FROM dbo.GabungPA_SAP 
     WHERE PAType IN ('Direct-Asnaf') 
     AND SAP_Touchpoint = 'FI10'
-    AND CONVERT(DATE, DateCreated) = '2024-11-27';
+    AND CONVERT(DATE, DateCreated) = '2024-12-12';
     """
     cursor.execute(query1)
     data1 = cursor.fetchall()
@@ -24,7 +24,7 @@ def generate_FI10(context):
     FROM dbo.GabungPA_SAP 
     WHERE PAType IN ('Direct-Recipient') 
     AND SAP_Touchpoint = 'FI10'
-    AND CONVERT(DATE, DateCreated) = '2024-11-27';
+    AND CONVERT(DATE, DateCreated) = '2024-12-12';
     """
     cursor.execute(query2)
     data2 = cursor.fetchall()
@@ -80,7 +80,7 @@ def generate_FI10(context):
             date_created = format_date(row.DateCreated)
             line1 = f"1|AGIH|{date_created}|{date_created}|ZB|MYR|||{clean_value(row.PaymentAdviceName)}|||{clean_value(row.DistributionitemsName)}||1|{clean_value(row.ad_Paamount)}|-{clean_value(row.ad_Paamount)}"
             line2 = f"2|001|S|{clean_value(row.vwlzs_glaccount)}|||MYR|{clean_value(row.ad_Paamount)}||MYR|{clean_value(row.ad_Paamount)}|||{clean_value(row.vwlzs_CostCenter)}|{clean_value(row.vwlzs_CostCenter)}||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}|||||||||||||||"
-            line3 = f"2|002|K|{clean_value(row.SAPCode)}|||MYR|-{clean_value(row.ad_Paamount)}||MYR|-{clean_value(row.ad_Paamount)}||||||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}||||||||MY||||MY|||"
+            line3 = f"2|002|K|{clean_value(row.SAPCode)}|||MYR|-{clean_value(row.ad_Paamount)}||MYR|-{clean_value(row.ad_Paamount)}|||{clean_value(row.vwlzs_CostCenter)}|{clean_value(row.vwlzs_CostCenter)}||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}||||||||MY||||MY|||"
             formatted_lines.extend([line1, line2, line3])
             lines_added += 3
 
@@ -100,7 +100,7 @@ def generate_FI10(context):
             date_created = format_date(row.DateCreated)
             line1 = f"1|AGIH|{date_created}|{date_created}|ZB|MYR|||{clean_value(row.PaymentAdviceName)}|||{clean_value(row.DistributionitemsName)}||1|{clean_value(row.ad_Paamount)}|-{clean_value(row.ad_Paamount)}"
             line2 = f"2|001|S|{clean_value(row.vwlzs_glaccount)}|||MYR|{clean_value(row.ad_Paamount)}||MYR|{clean_value(row.ad_Paamount)}|||{clean_value(row.vwlzs_CostCenter)}|{clean_value(row.vwlzs_CostCenter)}||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}|||||||||||||||"
-            line3 = f"2|002|K|5000002|||MYR|-{clean_value(row.ad_Paamount)}||MYR|-{clean_value(row.ad_Paamount)}||||||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}|{clean_value(row.ad_Penerimaname)}|||{clean_value(row.Street1)}|{clean_value(row.City)}|{clean_value(row.Postcode)}|{clean_value(row.Negeri)}|MY|{clean_value(row.Email)}|{clean_value(row.vwlzs_SwiftCode)}|{clean_value(row.BankAccountNo)}|MY||{clean_value(row.IdentificationNumIC)}|"
+            line3 = f"2|002|K|5000002|||MYR|-{clean_value(row.ad_Paamount)}||MYR|-{clean_value(row.ad_Paamount)}|||{clean_value(row.vwlzs_CostCenter)}|{clean_value(row.vwlzs_CostCenter)}||||{clean_value(row.SAP_AsnafCategory)}||||{clean_value(row.ad_PenerimaMOP)}||{clean_value(row.AA_invoice)}|{clean_value(row.remark)}|||||{clean_value(row.ad_sapcommittedreference)}|{clean_value(row.DistributionitemsName)}|{clean_value(row.FundCode)}|{clean_value(row.businessArea)}|{clean_value(row.ad_Penerimaname)}|||{clean_value(row.Street1)}|{clean_value(row.City)}|{clean_value(row.Postcode)}|{clean_value(row.Negeri)}|MY|{clean_value(row.Email)}|{clean_value(row.vwlzs_SwiftCode)}|{clean_value(row.BankAccountNo)}|MY||{clean_value(row.IdentificationNumIC)}|"
             formatted_lines.extend([line1, line2, line3])
             lines_added += 3
 
