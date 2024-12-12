@@ -13,7 +13,7 @@ def generate_FI09(context):
     FROM dbo.GabungPA_SAP 
     WHERE PAType IN ('Invoice-Asnaf', 'Invoice-Master') 
     AND SAP_Touchpoint = 'FI09'
-    AND CONVERT(DATE, DateCreated) = '2024-11-27';
+    AND CONVERT(DATE, DateCreated) = '2024-12-12';
     """
     cursor.execute(query1)
     data1 = cursor.fetchall()
@@ -24,7 +24,7 @@ def generate_FI09(context):
     FROM dbo.GabungPA_SAP 
     WHERE PAType IN ('Invoice-Recipient') 
     AND SAP_Touchpoint = 'FI09'
-    AND CONVERT(DATE, DateCreated) = '2024-11-27';
+    AND CONVERT(DATE, DateCreated) = '2024-12-12';
     """
     cursor.execute(query2)
     data2 = cursor.fetchall()
