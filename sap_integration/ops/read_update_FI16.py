@@ -173,16 +173,16 @@ def process_data_row(context, sqlserver_conn, timestamp, row):
     try:
         if status == "PRINTED":
             ad_printed_date = datetime.strptime(date_str, "%y%m%d").strftime("%Y%m%d")
-            update_payment_advice(context, sqlserver_conn, payment_advice, timestamp, status, pa_message, ad_printed_date, 'ad_PrintedDate')
-            context.log.info(f"Updated PRINTED record for Payment Advice Name: {payment_advice}")
+            update_payment_advice_printed(context, sqlserver_conn, payment_advice, timestamp, status, pa_message, ad_printed_date)
+            context.log.info(f"Updated PRINTED record for Payment Advice Name: {payment_advice}, timestamp:{timestamp}, status:")
         elif status == "VOIDED":
             ad_voiddate = datetime.strptime(date_str, "%y%m%d").strftime("%Y%m%d")
-            update_payment_advice(context, sqlserver_conn, payment_advice, timestamp, status, pa_message, ad_voiddate, 'ad_voiddate')
+            update_payment_advice_void(context, sqlserver_conn, payment_advice, timestamp, status, pa_message, ad_voiddate)
             context.log.info(f"Updated VOIDED record for Payment Advice Name: {payment_advice}")
     except ValueError as e:
         context.log.error(f"Date parsing error for PAD ID {pad_id} in row: {row}. Error: {e}")
 
-def update_payment_advice(context, sqlserver_conn, payment_advice_name, timestamp, status, pa_message, date_value, date_field):
+def update_payment_advice_printed(context, sqlserver_conn, payment_advice_name, timestamp, status, pa_message, date_value):
     """Update the PaymentAdvice table based on the provided details."""
 
     if not payment_advice_name:
@@ -192,7 +192,29 @@ def update_payment_advice(context, sqlserver_conn, payment_advice_name, timestam
     try:
         update_query = """
             UPDATE dbo.PaymentAdvice
-            SET Synced_status = 'Synced', ad_saprefno = ?, status = ?, PA_message = ?, {date_field} = ?
+            SET Synced_status = 'Synced', ad_saprefno = ?, status = ?, PA_message = ?, ad_PrintedDate = ?
+            WHERE PaymentAdviceName = ?
+        """
+        parameters = (timestamp, status, pa_message, date_value, payment_advice_name)
+        with sqlserver_conn.cursor() as cursor:
+            cursor.execute(update_query, parameters)
+            sqlserver_conn.commit()
+            context.log.info(f"Updated PaymentAdvice: {payment_advice_name}.")
+
+    except Exception as e:
+        context.log.error(f"Error updating PaymentAdvice: {e}")
+
+def update_payment_advice_void(context, sqlserver_conn, payment_advice_name, timestamp, status, pa_message, date_value):
+    """Update the PaymentAdvice table based on the provided details."""
+
+    if not payment_advice_name:
+        context.log.error("PaymentAdviceName must be provided.")
+        return
+    
+    try:
+        update_query = """
+            UPDATE dbo.PaymentAdvice
+            SET Synced_status = 'Synced', ad_saprefno = ?, status = ?, PA_message = ?, ad_voiddate = ?
             WHERE PaymentAdviceName = ?
         """
         parameters = (timestamp, status, pa_message, date_value, payment_advice_name)
