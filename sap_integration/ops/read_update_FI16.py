@@ -123,22 +123,35 @@ def insert_file_log(sqlserver_conn, file_type, filename, data_raw):
         sqlserver_conn.commit()
 
 def format_payment_advice_name(context, payment_advice_name):
-    """Formats the ad_synced_date string to the desired format."""
-    if not payment_advice_name :
+    """Checks and formats the PaymentAdviceName string to the desired format."""
+    if not payment_advice_name:
         context.log.info("Empty PaymentAdviceName.")
-        return
+        return None
 
-    # Split the payment advice string by '/'
-    parts = payment_advice_name.split("/")
-    if len(parts) != 3:
-        context.log.error("Invalid PaymentAdviceName format. Expected format: 'PA/YYYY/NNNNNNNN'.")
-        return
-    
-    prefix = payment_advice_name.split("/")[0]
-    year = payment_advice_name.split("/")[1]
-    number = payment_advice_name.split("/")[2]
+    # Check if the format is 'PA-YYYY-NNNNNNNN'
+    if payment_advice_name.startswith("PA-") and len(payment_advice_name.split("-")) == 3:
+        prefix, year, number = payment_advice_name.split("-")
+        if year.isdigit() and number.isdigit():
+            context.log.info(f"PaymentAdviceName is already in the correct format: {payment_advice_name}")
+            return payment_advice_name
+        else:
+            context.log.error(f"Invalid PaymentAdviceName format: {payment_advice_name}")
+            return None
 
-    return f"{prefix}-{year}-{number}"
+    # Check if the format is 'PA/YYYY/NNNNNNNN'
+    if payment_advice_name.startswith("PA/") and len(payment_advice_name.split("/")) == 3:
+        prefix, year, number = payment_advice_name.split("/")
+        if year.isdigit() and number.isdigit():
+            formatted_name = f"{prefix}-{year}-{number}"
+            context.log.info(f"Formatted PaymentAdviceName to: {formatted_name}")
+            return formatted_name
+        else:
+            context.log.error(f"Invalid PaymentAdviceName format: {payment_advice_name}")
+            return None
+
+    # If neither format is valid
+    context.log.error(f"Invalid PaymentAdviceName format. Expected 'PA-YYYY-NNNNNNNN' or 'PA/YYYY/NNNNNNNN'. Got: {payment_advice_name}")
+    return None
 
 def process_data_row(context, sqlserver_conn, timestamp, row):
     """Process a single row of data based on the status and perform updates accordingly."""
