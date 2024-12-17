@@ -144,13 +144,13 @@ def generate_FI15_and_push_flatfile_job():
 
 # Job for FI16
 # @job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
-@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource})
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource, "sftp": sftp})
 def read_FI16_and_update_table_job():
     read_update_FI16()
 
 # Job for FI21
 # @job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
-@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource})
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "postgres_db": postgres_db_resource, "sftp": sftp})
 def read_FI21_and_update_table_job():
     read_update_FI21()
 
