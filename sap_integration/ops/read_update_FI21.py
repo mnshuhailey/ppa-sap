@@ -71,9 +71,10 @@ def read_update_FI21(context):
 
                 # Process the header
                 header_info = {
-                    "record_type": header[0],
-                    "document_type": header[1],
+                    "record": header[0],
+                    "record_type": header[1],
                     "timestamp": header[2],
+                    "document_type": header[3]
                 }
 
                 # Log header information
@@ -121,27 +122,56 @@ def insert_file_log(sqlserver_conn, file_type, filename, data_raw):
         cursor.execute(insert_query, (file_type, filename, data_raw, 'Read'))
         sqlserver_conn.commit()
 
+def format_payment_advice_name(context, payment_advice_name):
+    """Formats the ad_synced_date string to the desired format."""
+    if not payment_advice_name :
+        context.log.info("Empty PaymentAdviceName.")
+        return
+
+    # Split the payment advice string by '/'
+    parts = payment_advice_name.split("/")
+    if len(parts) != 3:
+        context.log.error("Invalid PaymentAdviceName format. Expected format: 'PA/YYYY/NNNNNNNN'.")
+        return
+    
+    prefix = payment_advice_name.split("/")[0]
+    year = payment_advice_name.split("/")[1]
+    number = payment_advice_name.split("/")[2]
+
+    return f"{prefix}-{year}-{number}"
+
 def process_data_row(context, sqlserver_conn, row):
     """Process a single row of data based on the status and perform updates accordingly."""
     record_indicator, company_code, payment_advice_name, status, pa_message, pad_id = row
     context.log.info(f"Processing Payment Advice: {payment_advice_name} with status: {status}")
 
+    payment_advice = format_payment_advice_name(context, payment_advice_name)
+    
+    # Check if PaymentAdviceName exists
+    check_query = "SELECT COUNT(1) FROM dbo.PaymentAdvice WHERE PaymentAdviceName = ?"
+    with sqlserver_conn.cursor() as cursor:
+        cursor.execute(check_query, (payment_advice,))
+        result = cursor.fetchone()
+        if result[0] == 0:  # If no matching record exists
+            context.log.error(f"PaymentAdviceName '{payment_advice}' does not exist in the database.")
+            return  # Skip the update if no record is found
+
     try:
         if status == "PRINTED" and pa_message == "SUCCESS" and "CLD" in pad_id and "EFD" not in pad_id:
             ad_bankclearance_date = extract_date_from_pad_id(pad_id, "CLD")
-            context.log.info(f"Updating PRINTED, SUCCESS, and CLD record: PaymentAdviceName={payment_advice_name}, ad_bankclearance={ad_bankclearance_date}")
-            update_payment_advice(sqlserver_conn, payment_advice_name, ad_bankclearance_date, 'ad_BankClearance')
+            context.log.info(f"Updating PRINTED, SUCCESS, and CLD record: PaymentAdviceName={payment_advice}, ad_bankclearance={ad_bankclearance_date}")
+            update_payment_advice(context, sqlserver_conn, payment_advice, ad_bankclearance_date, 'ad_BankClearance')
 
         elif status == "PRINTED" and pa_message == "SUCCESS" and "CLD" in pad_id and "EFD" in pad_id:
             ad_bankclearance_date = extract_date_from_pad_id(pad_id, "CLD")
             ad_effectivedate = extract_date_from_pad_id(pad_id, "EFD")
-            context.log.info(f"Updating PRINTED, SUCCESS, CLD, and EFD record: PaymentAdviceName={payment_advice_name}, ad_bankclearance={ad_bankclearance_date}, ad_effectivedate={ad_effectivedate}")
-            update_payment_advice(sqlserver_conn, payment_advice_name, ad_bankclearance_date, 'ad_BankClearance', ad_effectivedate)
+            context.log.info(f"Updating PRINTED, SUCCESS, CLD, and EFD record: PaymentAdviceName={payment_advice}, ad_bankclearance={ad_bankclearance_date}, ad_effectivedate={ad_effectivedate}")
+            update_payment_advice(context, sqlserver_conn, payment_advice, ad_bankclearance_date, 'ad_BankClearance', ad_effectivedate)
 
         elif status == "PAID" and "COD" in pad_id:
             ad_collected_date = extract_date_from_pad_id(pad_id, "COD")
-            context.log.info(f"Updating PAID and COD record: PaymentAdviceName={payment_advice_name}, ad_collecteddate={ad_collected_date}")
-            update_payment_advice(sqlserver_conn, payment_advice_name, ad_collected_date, 'ad_collecteddate')
+            context.log.info(f"Updating PAID and COD record: PaymentAdviceName={payment_advice}, ad_collecteddate={ad_collected_date}")
+            update_payment_advice(context, sqlserver_conn, payment_advice, ad_collected_date, 'ad_collecteddate')
 
     except ValueError as e:
         context.log.error(f"Date parsing error for PAD ID {pad_id} in row: {row}. Error: {e}")
@@ -154,22 +184,33 @@ def extract_date_from_pad_id(pad_id, prefix):
             return datetime.strptime(date_str, "%y%m%d").strftime("%Y%m%d")
     return None
 
-def update_payment_advice(sqlserver_conn, payment_advice_name, date_value, date_field, ad_effectivedate=None):
+def update_payment_advice(context, sqlserver_conn, payment_advice_name, date_value, date_field, ad_effectivedate=None):
     """Update the PaymentAdvice table based on the provided details."""
-    if ad_effectivedate:
-        query = """
-            UPDATE dbo.PaymentAdvice
-            SET status = ?, ad_BankClearance = ?, ad_effectivedate = ?
-            WHERE PaymentAdviceName = ?
-        """
-        parameters = ('PRINTED', date_value, ad_effectivedate, payment_advice_name)
-    else:
-        query = f"""
-            UPDATE dbo.PaymentAdvice
-            SET {date_field} = ?
-            WHERE PaymentAdviceName = ?
-        """
-        parameters = (date_value, payment_advice_name)
 
-    with sqlserver_conn.cursor() as cursor:
-        cursor.execute(query, parameters)
+    if not payment_advice_name:
+        context.log.error("PaymentAdviceName must be provided.")
+        return
+    
+    try:
+        if ad_effectivedate:
+            query = """
+                UPDATE dbo.PaymentAdvice
+                SET status = ?, ad_BankClearance = ?, ad_effectivedate = ?
+                WHERE PaymentAdviceName = ?
+            """
+            parameters = ('PRINTED', date_value, ad_effectivedate, payment_advice_name)
+        else:
+            query = """
+                UPDATE dbo.PaymentAdvice
+                SET {date_field} = ?
+                WHERE PaymentAdviceName = ?
+            """
+            parameters = (date_value, payment_advice_name)
+
+        with sqlserver_conn.cursor() as cursor:
+            cursor.execute(query, parameters)
+            sqlserver_conn.commit()
+            context.log.info(f"Updated PaymentAdvice: {payment_advice_name}.")
+
+    except Exception as e:
+        context.log.error(f"Error updating PaymentAdvice: {e}")
