@@ -1,5 +1,5 @@
 from dagster import op
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 @op(required_resource_keys={"sqlserver_db", "sftp"})
@@ -18,76 +18,83 @@ def read_update_FI21(context):
             context.log.error(f"SFTP directory not found: {REMOTE_FOLDER}")
             return
 
-        # Get the current date in the required format
-        current_date = datetime.now().strftime("%Y%m%d")
-        file_prefix = f"FI21_{current_date}"
+        # Define start date and current date
+        start_date = datetime.strptime("2024-11-26", "%Y-%m-%d")
+        current_date = datetime.now()
 
-        # List files in the specified remote folder
-        files = sftp_conn.listdir(REMOTE_FOLDER)
+        # Iterate over each date in the range
+        delta = (current_date - start_date).days + 1
+        for day_offset in range(delta):
+            processing_date = start_date + timedelta(days=day_offset)
+            date_str = processing_date.strftime("%Y%m%d")
+            file_prefix = f"FI21_{date_str}"
 
-        # Filter files matching the required format
-        matching_files = [f for f in files if f.startswith(file_prefix) and f.endswith(".txt")]
+            # List files in the specified remote folder
+            files = sftp_conn.listdir(REMOTE_FOLDER)
 
-        if not matching_files:
-            context.log.error(f"No files matching the required format found.")
-            return
+            # Filter files matching the required format
+            matching_files = [f for f in files if f.startswith(file_prefix) and f.endswith(".txt")]
 
-        context.log.info(f"Found {len(matching_files)} matching file(s): {matching_files}")
-
-        for file_name in matching_files:
-            # Check if the file has already been processed
-            # if file_already_processed(context, sqlserver_conn, file_name):
-            #     context.log.info(f"File data for {file_name} already updated in SQL Server with status 'Read'. Skipping.")
-            #     continue
-
-            # Read the contents of the file
-            file_path = f"{REMOTE_FOLDER}/{file_name}"
-            with sftp_conn.open(file_path, "r") as file:
-                data_raw = file.read().decode("utf-8")
-
-            # Log the raw data
-            context.log.info(f"Raw data from the file ({file_name}):\n{data_raw}")
-
-            # Parse header and data rows
-            lines = data_raw.strip().split("\n")
-            header = lines[0].split("|")
-            data_rows = [line.split("|") for line in lines[1:] if line.strip()]
-
-            # Log header and data rows
-            context.log.info(f"Header: {header}")
-            context.log.info(f"Data rows: {data_rows}")
-
-            # Check if data rows exist
-            if not data_rows:
-                context.log.error(f"No data rows found in the file: {file_name}")
+            if not matching_files:
+                context.log.info(f"No files matching the required format for {processing_date.strftime('%Y-%m-%d')}.")
                 continue
 
-            # Process the header
-            header_info = {
-                "record_type": header[0],
-                "document_type": header[1],
-                "timestamp": header[2],
-            }
+            context.log.info(f"Found {len(matching_files)} matching file(s) for {processing_date.strftime('%Y-%m-%d')}: {matching_files}")
 
-            # Log header information
-            context.log.info(f"Parsed header info: {header_info}")
-
-            # Process each row in the file
-            for row in data_rows:
-                if len(row) != 6:
-                    context.log.error(f"Invalid row format: {row}. Skipping.")
+            for file_name in matching_files:
+                # Check if the file has already been processed
+                if file_already_processed(context, sqlserver_conn, file_name):
+                    context.log.info(f"File data for {file_name} already updated in SQL Server with status 'Read'. Skipping.")
                     continue
 
-                # Process each data row
-                # process_data_row(context, sqlserver_conn, row)
+                # Read the contents of the file
+                file_path = f"{REMOTE_FOLDER}/{file_name}"
+                with sftp_conn.open(file_path, "r") as file:
+                    data_raw = file.read().decode("utf-8")
 
-            # Insert a log entry for the file
-            # insert_file_log(sqlserver_conn, header_info['record_type'], file_name, data_raw)
-            # context.log.info(f"Inserted log entry for file: {file_name}")
+                # Log the raw data
+                context.log.info(f"Raw data from the file ({file_name}):\n{data_raw}")
+
+                # Parse header and data rows
+                lines = data_raw.strip().split("\n")
+                header = lines[0].split("|")
+                data_rows = [line.split("|") for line in lines[1:] if line.strip()]
+
+                # Log header and data rows
+                context.log.info(f"Header: {header}")
+                context.log.info(f"Data rows: {data_rows}")
+
+                # Check if data rows exist
+                if not data_rows:
+                    context.log.error(f"No data rows found in the file: {file_name}")
+                    continue
+
+                # Process the header
+                header_info = {
+                    "record_type": header[0],
+                    "document_type": header[1],
+                    "timestamp": header[2],
+                }
+
+                # Log header information
+                context.log.info(f"Parsed header info: {header_info}")
+
+                # Process each row in the file
+                for row in data_rows:
+                    if len(row) != 6:
+                        context.log.error(f"Invalid row format: {row}. Skipping.")
+                        continue
+
+                    # Process each data row
+                    process_data_row(context, sqlserver_conn, row)
+
+                # Insert a log entry for the file
+                insert_file_log(sqlserver_conn, header_info['record_type'], file_name, data_raw)
+                context.log.info(f"Inserted log entry for file: {file_name}")
 
         # Commit the updates after processing all files
-        # sqlserver_conn.commit()
-        context.log.info(f"Completed processing {len(matching_files)} file(s).")
+        sqlserver_conn.commit()
+        context.log.info(f"Completed processing files from {start_date.strftime('%Y-%m-%d')} to {current_date.strftime('%Y-%m-%d')}.")
 
     except Exception as e:
         context.log.error(f"Error during SFTP processing: {e}")
