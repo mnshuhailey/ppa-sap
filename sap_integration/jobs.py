@@ -68,7 +68,7 @@ def write_to_flatfile_file(context, formatted_lines, filename):
 
 # Commented out push_to_sftp function for now
 @op
-def push_to_sftp(context, local_path):
+def push_to_sftp(context, local_path, remote_folder):
     sftp_host = "192.168.10.176"
     sftp_username = "shuhailey"
     sftp_password = "Lzs.user831"  # Use environment variables instead for production security
@@ -119,27 +119,27 @@ def generate_FI07_and_push_flatfile_job():
     # push_to_sftp(local_path)
 
 # Job for FI09
-@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
 def generate_FI09_and_push_flatfile_job():
-    filename = get_fi09_filename()
-    formatted_lines = generate_FI09()
-    local_path = write_to_flatfile_file(formatted_lines, filename)
+    # filename = get_fi09_filename()
+    generate_FI09()
+    # local_path = write_to_flatfile_file(formatted_lines, filename)
     # push_to_sftp(local_path)
 
 # Job for FI10
-@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
 def generate_FI10_and_push_flatfile_job():
-    filename = get_fi10_filename()
-    formatted_lines = generate_FI10()
-    local_path = write_to_flatfile_file(formatted_lines, filename)
+    # filename = get_fi10_filename()
+    generate_FI10()
+    # local_path = write_to_flatfile_file(formatted_lines, filename)
     # push_to_sftp(local_path)
 
 # Job for FI15
-@job(resource_defs={"sqlserver_db": sqlserver_db_resource})
+@job(resource_defs={"sqlserver_db": sqlserver_db_resource, "sftp": sftp})
 def generate_FI15_and_push_flatfile_job():
-    filename = get_fi15_filename()
-    formatted_lines = generate_FI15()
-    local_path = write_to_flatfile_file(formatted_lines, filename)
+    # filename = get_fi15_filename()
+    generate_FI15()
+    # local_path = write_to_flatfile_file(formatted_lines, filename)
     # push_to_sftp(local_path)
 
 # Job for FI16
