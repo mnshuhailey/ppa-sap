@@ -24,84 +24,84 @@ def generate_FI10(context):
     current_date = datetime.now().strftime('%Y-%m-%d')
 
     # Query for data1 (Direct-Asnaf)
-    # query1 = """
-    # SELECT * 
-    # FROM dbo.GabungPA_SAP 
-    # WHERE PAType IN ('Direct-Asnaf', 'Direct-Master') 
-    # AND SAP_Touchpoint = 'FI10'
-    # AND CONVERT(DATE, DateCreated) = ?;
-    # """
-    # cursor.execute(query1, (current_date,))
-    # data1 = cursor.fetchall()
-
-    # # Query for data2 (Direct-Recipient)
-    # query2 = """
-    # SELECT * 
-    # FROM dbo.GabungPA_SAP 
-    # WHERE PAType IN ('Direct-Recipient') 
-    # AND SAP_Touchpoint = 'FI10'
-    # AND CONVERT(DATE, DateCreated) = ?;
-    # """
-    # cursor.execute(query2, (current_date,))
-    # data2 = cursor.fetchall()
-
-    # Define the list of PaymentAdviceName values
-    payment_advice_names = [
-        'PA-2024-00000005', 'PA-2024-00000008', 'PA-2024-00000011',
-        'PA-2024-00000012', 'PA-2024-00000014', 'PA-2024-00000019',
-        'PA-2024-00000021', 'PA-2024-00000023', 'PA-2024-00000026',
-        'PA-2024-00000028', 'PA-2024-00000032', 'PA-2024-00000033',
-        'PA-2024-00000034', 'PA-2024-00000038', 'PA-2024-00000041',
-        'PA-2024-00000042', 'PA-2024-00000045', 'PA-2024-00000046',
-        'PA-2024-00000047', 'PA-2024-00000049', 'PA-2024-00000051',
-        'PA-2024-00000052', 'PA-2024-00000054', 'PA-2024-00000059',
-        'PA-2024-00000060', 'PA-2024-00000061', 'PA-2024-00000064',
-        'PA-2024-00000067', 'PA-2024-00000068', 'PA-2024-00000074',
-        'PA-2024-00000075', 'PA-2024-00000076', 'PA-2024-00000078',
-        'PA-2024-00000080', 'PA-2024-00000084', 'PA-2024-00000085',
-        'PA-2024-00000088', 'PA-2024-00000089', 'PA-2024-00000094',
-        'PA-2024-00000095', 'PA-2024-00000098', 'PA-2024-00000101',
-        'PA-2024-00000104', 'PA-2024-00000110', 'PA-2024-00000111',
-        'PA-2024-00000112', 'PA-2024-00000125', 'PA-2024-00000126',
-        'PA-2024-00000140', 'PA-2024-00000141', 'PA-2024-00000142',
-        'PA-2024-00000143', 'PA-2024-00000144', 'PA-2024-00000145',
-        'PA-2024-00000147', 'PA-2024-00000149', 'PA-2024-00000154',
-        'PA-2024-00000156', 'PA-2024-00000157', 'PA-2024-00000158',
-        'PA-2024-00000159', 'PA-2024-00000162', 'PA-2024-00000163',
-        'PA-2024-00000164', 'PA-2024-00000165', 'PA-2024-00000166',
-        'PA-2024-00000167', 'PA-2024-00000168', 'PA-2024-00000170',
-        'PA-2024-00000171', 'PA-2024-00000173', 'PA-2024-00000174',
-        'PA-2024-00000175', 'PA-2024-00000179', 'PA-2024-00000200',
-        'PA-2024-00000208', 'PA-2024-00000210', 'PA-2024-00000211',
-        'PA-2024-00000214', 'PA-2024-00000215', 'PA-2024-00000216',
-        'PA-2024-00000217', 'PA-2024-00000218', 'PA-2024-00000219',
-        'PA-2024-00000220', 'PA-2024-00000221', 'PA-2024-00000222'
-    ]
-
-    # Convert the list to a formatted string for the SQL IN clause
-    formatted_payment_advice_names = ", ".join(f"'{name}'" for name in payment_advice_names)
-
-    # Query for data1 (Direct-Asnaf and Direct-Master)
-    query1 = f"""
+    query1 = """
     SELECT * 
     FROM dbo.GabungPA_SAP 
     WHERE PAType IN ('Direct-Asnaf', 'Direct-Master') 
     AND SAP_Touchpoint = 'FI10'
-    AND PaymentAdviceName IN ({formatted_payment_advice_names});
+    AND CONVERT(DATE, DateCreated) = ?;
     """
-    cursor.execute(query1)
+    cursor.execute(query1, (current_date,))
     data1 = cursor.fetchall()
 
     # Query for data2 (Direct-Recipient)
-    query2 = f"""
+    query2 = """
     SELECT * 
     FROM dbo.GabungPA_SAP 
     WHERE PAType IN ('Direct-Recipient') 
     AND SAP_Touchpoint = 'FI10'
-    AND PaymentAdviceName IN ({formatted_payment_advice_names});
+    AND CONVERT(DATE, DateCreated) = ?;
     """
-    cursor.execute(query2)
+    cursor.execute(query2, (current_date,))
     data2 = cursor.fetchall()
+
+    # Define the list of PaymentAdviceName values
+    # payment_advice_names = [
+    #     'PA-2024-00000005', 'PA-2024-00000008', 'PA-2024-00000011',
+    #     'PA-2024-00000012', 'PA-2024-00000014', 'PA-2024-00000019',
+    #     'PA-2024-00000021', 'PA-2024-00000023', 'PA-2024-00000026',
+    #     'PA-2024-00000028', 'PA-2024-00000032', 'PA-2024-00000033',
+    #     'PA-2024-00000034', 'PA-2024-00000038', 'PA-2024-00000041',
+    #     'PA-2024-00000042', 'PA-2024-00000045', 'PA-2024-00000046',
+    #     'PA-2024-00000047', 'PA-2024-00000049', 'PA-2024-00000051',
+    #     'PA-2024-00000052', 'PA-2024-00000054', 'PA-2024-00000059',
+    #     'PA-2024-00000060', 'PA-2024-00000061', 'PA-2024-00000064',
+    #     'PA-2024-00000067', 'PA-2024-00000068', 'PA-2024-00000074',
+    #     'PA-2024-00000075', 'PA-2024-00000076', 'PA-2024-00000078',
+    #     'PA-2024-00000080', 'PA-2024-00000084', 'PA-2024-00000085',
+    #     'PA-2024-00000088', 'PA-2024-00000089', 'PA-2024-00000094',
+    #     'PA-2024-00000095', 'PA-2024-00000098', 'PA-2024-00000101',
+    #     'PA-2024-00000104', 'PA-2024-00000110', 'PA-2024-00000111',
+    #     'PA-2024-00000112', 'PA-2024-00000125', 'PA-2024-00000126',
+    #     'PA-2024-00000140', 'PA-2024-00000141', 'PA-2024-00000142',
+    #     'PA-2024-00000143', 'PA-2024-00000144', 'PA-2024-00000145',
+    #     'PA-2024-00000147', 'PA-2024-00000149', 'PA-2024-00000154',
+    #     'PA-2024-00000156', 'PA-2024-00000157', 'PA-2024-00000158',
+    #     'PA-2024-00000159', 'PA-2024-00000162', 'PA-2024-00000163',
+    #     'PA-2024-00000164', 'PA-2024-00000165', 'PA-2024-00000166',
+    #     'PA-2024-00000167', 'PA-2024-00000168', 'PA-2024-00000170',
+    #     'PA-2024-00000171', 'PA-2024-00000173', 'PA-2024-00000174',
+    #     'PA-2024-00000175', 'PA-2024-00000179', 'PA-2024-00000200',
+    #     'PA-2024-00000208', 'PA-2024-00000210', 'PA-2024-00000211',
+    #     'PA-2024-00000214', 'PA-2024-00000215', 'PA-2024-00000216',
+    #     'PA-2024-00000217', 'PA-2024-00000218', 'PA-2024-00000219',
+    #     'PA-2024-00000220', 'PA-2024-00000221', 'PA-2024-00000222'
+    # ]
+
+    # # Convert the list to a formatted string for the SQL IN clause
+    # formatted_payment_advice_names = ", ".join(f"'{name}'" for name in payment_advice_names)
+
+    # # Query for data1 (Direct-Asnaf and Direct-Master)
+    # query1 = f"""
+    # SELECT * 
+    # FROM dbo.GabungPA_SAP 
+    # WHERE PAType IN ('Direct-Asnaf', 'Direct-Master') 
+    # AND SAP_Touchpoint = 'FI10'
+    # AND PaymentAdviceName IN ({formatted_payment_advice_names});
+    # """
+    # cursor.execute(query1)
+    # data1 = cursor.fetchall()
+
+    # # Query for data2 (Direct-Recipient)
+    # query2 = f"""
+    # SELECT * 
+    # FROM dbo.GabungPA_SAP 
+    # WHERE PAType IN ('Direct-Recipient') 
+    # AND SAP_Touchpoint = 'FI10'
+    # AND PaymentAdviceName IN ({formatted_payment_advice_names});
+    # """
+    # cursor.execute(query2)
+    # data2 = cursor.fetchall()
 
     # Initialize formatted_lines with only the header initially
     formatted_lines = []
@@ -129,18 +129,33 @@ def generate_FI10(context):
 
         # Upload the file to the SFTP server
         try:
+            # Ensure the SFTP connection is active
+            if not sftp_conn:
+                context.log.error("SFTP connection is not initialized.")
+                return False
+
+            # Define the remote file path
             remote_file_path = f"{REMOTE_FOLDER}/{filename}"
-            sftp_conn = context.resources.sftp
+
+            # Upload the file
+            context.log.info(f"Uploading file to SFTP server at path: {remote_file_path}")
             with sftp_conn.open(remote_file_path, "w") as remote_file:
                 remote_file.write(file_content)
             context.log.info(f"File successfully uploaded to SFTP server: {remote_file_path}")
             return True
+
+        except IOError as io_error:
+            context.log.error(f"IO error during file upload: {io_error}")
+            return False
+
         except Exception as e:
             context.log.error(f"Error uploading file to SFTP server: {e}")
             return False
+
         finally:
             # Clean up the local file
             try:
+                # Uncomment to enable file removal
                 # os.remove(local_file_path)
                 context.log.info(f"Temporary local file removed: {local_file_path}")
             except Exception as cleanup_error:

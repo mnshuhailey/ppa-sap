@@ -58,21 +58,36 @@ def generate_FI15(context):
             context.log.error(f"Error writing file to local path: {e}")
             return False
 
-        # Upload the file to the SFTP server
+                # Upload the file to the SFTP server
         try:
+            # Ensure the SFTP connection is active
+            if not sftp_conn:
+                context.log.error("SFTP connection is not initialized.")
+                return False
+
+            # Define the remote file path
             remote_file_path = f"{REMOTE_FOLDER}/{filename}"
-            sftp_conn = context.resources.sftp
+
+            # Upload the file
+            context.log.info(f"Uploading file to SFTP server at path: {remote_file_path}")
             with sftp_conn.open(remote_file_path, "w") as remote_file:
                 remote_file.write(file_content)
             context.log.info(f"File successfully uploaded to SFTP server: {remote_file_path}")
             return True
+
+        except IOError as io_error:
+            context.log.error(f"IO error during file upload: {io_error}")
+            return False
+
         except Exception as e:
             context.log.error(f"Error uploading file to SFTP server: {e}")
             return False
+
         finally:
             # Clean up the local file
             try:
-                os.remove(local_file_path)
+                # Uncomment to enable file removal
+                # os.remove(local_file_path)
                 context.log.info(f"Temporary local file removed: {local_file_path}")
             except Exception as cleanup_error:
                 context.log.error(f"Error removing temporary local file: {cleanup_error}")
