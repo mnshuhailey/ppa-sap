@@ -140,11 +140,11 @@ def generate_FI10(context):
             return False
         finally:
             # Clean up the local file
-            try:
-                os.remove(local_file_path)
-                context.log.info(f"Temporary local file removed: {local_file_path}")
-            except Exception as cleanup_error:
-                context.log.error(f"Error removing temporary local file: {cleanup_error}")
+            # try:
+            #     os.remove(local_file_path)
+            #     context.log.info(f"Temporary local file removed: {local_file_path}")
+            # except Exception as cleanup_error:
+            #     context.log.error(f"Error removing temporary local file: {cleanup_error}")
 
     # Helper function to format DateCreated
     def format_date(date_value):
