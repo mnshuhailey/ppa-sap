@@ -1,7 +1,7 @@
 import os
 from math import ceil
 from dagster import op
-from datetime import datetime
+from datetime import datetime, timedelta
 
 @op(required_resource_keys={"sqlserver_db", "sftp"})
 # @op(required_resource_keys={"sqlserver_db"})
@@ -45,15 +45,25 @@ def generate_FI10(context):
     # cursor.execute(query2)
     # data2 = cursor.fetchall()
 
-    # Get current date in YYYY-MM-DD format
-    # current_date = datetime.now().strftime('%Y-%m-%d')
-
     # Local Custom Query using specific date
-    current_date = '2025-02-14'
+    # current_date = '2025-02-14'
 
     # Define full-day range
-    start_date = f"{current_date} 00:00:00"
-    end_date = f"{current_date} 23:59:59"
+    # start_date = f"{current_date} 00:00:00"
+    # end_date = f"{current_date} 23:59:59"
+
+    # Get current timestamp
+    current_time = datetime.now()
+
+    # Calculate the previous hour range
+    previous_hour_start = (current_time - timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+    previous_hour_end = previous_hour_start.replace(minute=59, second=59, microsecond=999999)
+
+    # Format the timestamps for SQL
+    start_date = previous_hour_start.strftime('%Y-%m-%d %H:%M:%S')
+    end_date = previous_hour_end.strftime('%Y-%m-%d %H:%M:%S')
+
+    context.log.info(f"Fetching data from: {start_date} to {end_date}")
 
     # Query for data1 (Direct-Asnaf & Direct-Master)
     query1 = """
@@ -74,7 +84,6 @@ def generate_FI10(context):
     """
     cursor.execute(query2, (start_date, end_date))
     data2 = cursor.fetchall()
-
 
     header_template = "0|FI10|{date_created}|PPA||{line_count}"
 
