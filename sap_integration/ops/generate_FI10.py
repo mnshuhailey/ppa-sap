@@ -21,7 +21,7 @@ def generate_FI10(context):
     conn = context.resources.sqlserver_db
     cursor = conn.cursor()
 
-    # # Query for data1 (Direct-Asnaf)
+    # # Query for data1 (Direct-Asnaf) - Local Custom Query
     # query1 = """
     # SELECT * FROM dbo.GabungPA_SAP 
     # WHERE PAType IN ('Direct-Asnaf', 'Direct-Master')
@@ -33,7 +33,7 @@ def generate_FI10(context):
     # cursor.execute(query1)
     # data1 = cursor.fetchall()
 
-    # # Query for data2 (Direct-Recipient)
+    # # Query for data2 (Direct-Recipient) - Local Custom Query
     # query2 = """
     # SELECT * FROM dbo.GabungPA_SAP 
     # WHERE PAType IN ('Direct-Recipient') 
@@ -48,7 +48,8 @@ def generate_FI10(context):
     # Get current date in YYYY-MM-DD format
     # current_date = datetime.now().strftime('%Y-%m-%d')
 
-    current_date = '2025-02-13'
+    # Local Custom Query using specific date
+    current_date = '2025-02-14'
 
     # Define full-day range
     start_date = f"{current_date} 00:00:00"
