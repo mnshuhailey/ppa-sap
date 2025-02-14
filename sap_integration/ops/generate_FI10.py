@@ -48,7 +48,7 @@ def generate_FI10(context):
     # Get current date in YYYY-MM-DD format
     # current_date = datetime.now().strftime('%Y-%m-%d')
 
-    current_date = '2025-02-12'
+    current_date = '2025-02-13'
 
     # Define full-day range
     start_date = f"{current_date} 00:00:00"
