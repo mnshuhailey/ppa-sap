@@ -46,10 +46,10 @@ def generate_FI10(context):
     # data2 = cursor.fetchall()
 
     # Get current date in YYYY-MM-DD format
-    # current_date = datetime.now().strftime('%Y-%m-%d')
+    current_date = datetime.now().strftime('%Y-%m-%d')
 
     # Local Custom Query using specific date
-    current_date = '2025-02-14'
+    # current_date = '2025-02-14'
 
     # Define full-day range
     start_date = f"{current_date} 00:00:00"
