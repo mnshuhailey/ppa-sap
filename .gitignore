@@ -1,2 +1,5 @@
 sap_integration/__pycache__/
 sap_integration/ops/__pycache__
+tmp*
+ppa-flatefile/
+sap_integration/schedules/__pycache__/
