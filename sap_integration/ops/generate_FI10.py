@@ -71,6 +71,7 @@ def generate_FI10(context):
     WHERE PAType IN ('Direct-Asnaf', 'Direct-Master')
     AND SAP_Touchpoint = 'FI10'
     AND DateCreated BETWEEN ? AND ?
+    AND PaymentAdviceName NOT LIKE 'PB-2025%'
     """
     cursor.execute(query1, (start_date, end_date))
     data1 = cursor.fetchall()
@@ -81,6 +82,7 @@ def generate_FI10(context):
     WHERE PAType = 'Direct-Recipient' 
     AND SAP_Touchpoint = 'FI10'
     AND DateCreated BETWEEN ? AND ?
+    AND PaymentAdviceName NOT LIKE 'PB-2025%'
     """
     cursor.execute(query2, (start_date, end_date))
     data2 = cursor.fetchall()
